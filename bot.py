@@ -1,8 +1,7 @@
-import tweepy, json, random
+import tweepy, json, random, pickle
 from PIL import Image
 
 class VerifiedBot():
-    TWITTER_VERIFIED_ID = 63796828
     def __init__(self, keyfile = "keys.json"):
         """Connects the script to the Twitter API."""
         #get the keys found in the json file
@@ -14,6 +13,18 @@ class VerifiedBot():
         self.api = tweepy.API(auth)
 
     def getRandomVerified(self):
-        with open("done.txt", "r") as file: done = [line.strip() for line in file.readlines()]
-        followers = [follower for follower in self.api.followers(TWITTER_VERIFIED_ID) if follower not in done]
-        return random.choice(followers)
+        with open("done.txt", "rb") as file: 
+            try: done = pickle.load(file)
+            except Exception: done = []
+        if done is None: done = []
+        followers = [follower for follower in self.api.friends_ids(63796828)]
+        choice = random.choice(followers)
+        with open("done.txt", "wb") as file: pickle.dump(done.append(choice), file)
+        return self.api.get_user(choice)
+    
+    def resetDone(self):
+        with open("done.txt", "rb"): pass
+
+bot = VerifiedBot()
+bot.resetDone()
+print("@"+bot.getRandomVerified().screen_name)
