@@ -43,7 +43,7 @@ class VerifiedBot():
         self.deleteImages()
         #get the url, save it locally, and upload it
         response = requests.get(url)
-        image = Image.open(io.BytesIO(response.content))
+        image = Image.open(io.BytesIO(response.content)).resize((200,200))
         image.save(os.path.join("images","image")+os.path.splitext(url)[-1])
         #return a media object for twitter upload
         media = self.api.media_upload(os.path.join("images",os.listdir("images")[0]))
@@ -54,7 +54,7 @@ class VerifiedBot():
         Posts the formatted information given a user object.
         """
         mediaID = self.uploadImage(user.profile_image_url).media_id_string
-        self.api.update_status(".@{} {}\n".format(user.screen_name, user.description), media_ids = [mediaID])
+        self.api.update_status(".@{} {}".format(user.screen_name, user.description), media_ids = [mediaID])
 
 if __name__ == "__main__":
     bot = VerifiedBot()
