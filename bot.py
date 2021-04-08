@@ -16,24 +16,32 @@ class VerifiedBot():
         """
         Returns a random verified account.
         """
+        #load the already done users
         with open("done.txt", "rb") as file: 
             try: done = pickle.load(file)
             except Exception: done = []
         if done is None: done = []
+
+        #retrieve all verified users and choose a random one
         followers = [follower for follower in self.api.friends_ids(63796828)]
         choice = random.choice(followers)
+
+        #update the already done users file
         with open("done.txt", "wb") as file: pickle.dump(done.append(choice), file)
+
         return self.api.get_user(choice)
     
     def resetDone(self):
+        """
+        Reset the already done users file.
+        """
         with open("done.txt", "rb"): pass
     
     def deleteImages(self):
         """
         Deletes all files in the images directory.
         """
-        for elem in os.listdir("images"):
-            os.remove(os.path.join("images",elem))
+        for elem in os.listdir("images"): os.remove(os.path.join("images",elem))
 
     def uploadImage(self, url):
         """"
@@ -41,10 +49,12 @@ class VerifiedBot():
         """
         #delete all local images
         self.deleteImages()
+
         #get the url, save it locally, and upload it
         response = requests.get(url)
         image = Image.open(io.BytesIO(response.content)).resize((200,200))
         image.save(os.path.join("images","image")+os.path.splitext(url)[-1])
+
         #return a media object for twitter upload
         media = self.api.media_upload(os.path.join("images",os.listdir("images")[0]))
         return media
@@ -53,10 +63,12 @@ class VerifiedBot():
         """
         Posts the formatted information given a user object.
         """
+        #upload the profile pic
         mediaID = self.uploadImage(user.profile_image_url).media_id_string
+
+        #
         self.api.update_status(".@{} {}".format(user.screen_name, user.description), media_ids = [mediaID])
 
 if __name__ == "__main__":
     bot = VerifiedBot()
-    bot.resetDone()
     bot.postInfo(bot.getRandomVerified())
